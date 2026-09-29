@@ -1,0 +1,229 @@
+<title>Тур по Актюбинскому краю</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: phone column; clay map stays on top, the selected «метка» (card with the fields from the research paper) below. #anchor = monument (QR target). */
+:root{
+  --bg:#E8EDF8; --surface:#F6F8FE; --ink:#2F3A5C; --muted:#67718F; --line:#D5DCEC;
+  --terra:#E9785C; --terra-ink:#B8472F; --teal:#57B6CF; --teal-ink:#23809B; --gold:#F5C75A; --green:#8ED3A0; --yellow:#F2D46B;
+  --sh-out:rgba(98,114,160,.34); --sh-hi:rgba(255,255,255,.95); --in-dark:rgba(47,58,92,.10); --in-hi:rgba(255,255,255,.9);
+  --font:"Nunito",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1D2235; --surface:#283050; --ink:#EAEEFB; --muted:#A6AFCD; --line:#353E60;
+  --terra-ink:#FF9A80; --teal-ink:#7FD3EA;
+  --sh-out:rgba(0,0,0,.55); --sh-hi:rgba(120,135,190,.10); --in-dark:rgba(0,0,0,.28); --in-hi:rgba(255,255,255,.07); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1D2235; --surface:#283050; --ink:#EAEEFB; --muted:#A6AFCD; --line:#353E60;
+  --terra-ink:#FF9A80; --teal-ink:#7FD3EA;
+  --sh-out:rgba(0,0,0,.55); --sh-hi:rgba(120,135,190,.10); --in-dark:rgba(0,0,0,.28); --in-hi:rgba(255,255,255,.07); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:500 16px/1.55 var(--font);padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:680px;margin:0 auto;display:grid;gap:22px}
+.clay{background:var(--surface);border-radius:28px;
+  box-shadow:12px 14px 28px var(--sh-out),-8px -8px 20px var(--sh-hi),inset -5px -7px 12px var(--in-dark),inset 5px 6px 12px var(--in-hi)}
+.btn{font:800 15px/1 var(--font);border:0;border-radius:18px;padding:15px 18px;cursor:pointer;text-decoration:none;color:var(--ink);background:var(--surface);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:6px 8px 16px var(--sh-out),-4px -4px 10px var(--sh-hi),inset -3px -4px 8px var(--in-dark),inset 3px 4px 8px var(--in-hi);transition:transform .12s}
+.btn:active{transform:translateY(2px) scale(.98)}
+.btn.primary{background:var(--teal);color:#123A47}
+.btn.terra{background:var(--terra);color:#FFF7F2}
+.btn:focus-visible,a:focus-visible,.pin:focus-visible{outline:3px solid var(--teal-ink);outline-offset:3px}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:900;letter-spacing:-.01em}
+.eyebrow{font:800 12px/1.2 var(--font);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;padding-block:12px;background:var(--bg)}
+.bar-in{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px 10px 18px;border-radius:22px}
+.brand{font:900 15px/1.2 var(--font);color:var(--ink);text-decoration:none}
+.prog{font:800 13px var(--font);padding:8px 12px;border-radius:14px;background:var(--bg);color:var(--muted);box-shadow:inset 3px 3px 6px var(--in-dark),inset -3px -3px 6px var(--in-hi)}
+
+.hero{display:grid;gap:10px;padding-top:8px}
+.hero h1{font-size:clamp(28px,7.4vw,40px);line-height:1.08}
+.hero p{margin:0;color:var(--muted);max-width:60ch}
+
+.mapcard{padding:14px}
+.mapcard svg{display:block;width:100%;height:auto;overflow:visible}
+.pin{cursor:pointer}
+.pin text{pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:8px;padding:12px 4px 2px}
+.chip{display:inline-flex;align-items:center;gap:8px;font:700 13px/1 var(--font);padding:9px 12px;border-radius:14px;background:var(--bg);
+  box-shadow:inset 3px 3px 6px var(--in-dark),inset -3px -3px 6px var(--in-hi)}
+.chip .dot{width:14px;height:14px;border-radius:50%;box-shadow:inset -2px -2px 3px rgba(0,0,0,.18),inset 2px 2px 3px rgba(255,255,255,.6)}
+.chip.off{opacity:.55}
+
+.list{display:grid;gap:14px;list-style:none;margin:0;padding:0}
+.row{display:grid;grid-template-columns:76px 1fr auto;gap:14px;align-items:center;padding:12px 16px 12px 12px;text-decoration:none;color:var(--ink);border-radius:24px}
+.thumb{width:76px;height:76px;border-radius:20px;display:grid;place-items:center;background:var(--bg);box-shadow:inset 3px 4px 8px var(--in-dark),inset -3px -3px 8px var(--in-hi)}
+.thumb svg{width:60px;height:60px}
+.thumb img{width:100%;height:100%;object-fit:cover;border-radius:20px;display:block}
+.row b{display:block;font-weight:800;line-height:1.25}
+.row small{color:var(--muted);font-weight:600}
+.row .t{min-width:0}
+.num{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font:900 15px var(--font);color:#fff;box-shadow:inset -3px -4px 6px rgba(0,0,0,.2),inset 3px 3px 6px rgba(255,255,255,.45)}
+.num.red{background:var(--terra)} .num.blue{background:var(--teal);color:#123A47}
+.seen{background:var(--green)!important;color:#15402A!important}
+
+/* метка */
+.mark{padding:18px;display:grid;gap:18px}
+.photo{border-radius:24px;aspect-ratio:16/10;max-width:100%;display:grid;place-items:center;position:relative;overflow:hidden;
+  box-shadow:inset 5px 6px 14px var(--in-dark),inset -5px -5px 14px var(--in-hi)}
+.photo.red{background:radial-gradient(120% 90% at 30% 20%,#FFE9DC,#F6C6B3)} .photo.blue{background:radial-gradient(120% 90% at 30% 20%,#E3F6FB,#B5E0EC)}
+.photo svg{width:62%;height:auto;max-height:88%}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.photo::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 5px 6px 14px rgba(47,58,92,.25),inset -4px -4px 12px rgba(255,255,255,.35);pointer-events:none}
+.photo .cap{position:absolute;left:12px;bottom:12px;z-index:1;font:700 12px var(--font);color:#fff;background:rgba(47,58,92,.55);padding:5px 9px;border-radius:10px;backdrop-filter:blur(4px)}
+.mark-head{display:grid;gap:8px}
+.mark-head h2{font-size:clamp(22px,6vw,30px);line-height:1.12}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0}
+.fields div{padding:12px 14px;border-radius:18px;background:var(--bg);min-width:0;box-shadow:inset 3px 3px 7px var(--in-dark),inset -3px -3px 7px var(--in-hi)}
+.fields .wide{grid-column:1/-1}
+.fields dt{font:800 11px var(--font);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.fields dd{margin:4px 0 0;font-weight:800}
+.coord{font-variant-numeric:tabular-nums;user-select:all;word-break:break-word}
+.approx{color:var(--terra-ink);font-weight:700;font-size:14px}
+.story{display:grid;gap:10px;max-width:65ch}
+.story p{margin:0}
+.links{display:flex;flex-wrap:wrap;gap:10px}
+.links > *{flex:1 1 200px}
+.quiz{padding:16px;border-radius:22px;background:var(--bg);display:grid;gap:10px;box-shadow:inset 3px 3px 7px var(--in-dark),inset -3px -3px 7px var(--in-hi)}
+.nav{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+.qr-card{padding:16px;display:grid;gap:10px;justify-items:center;text-align:center}
+.qrbox{background:#fff;padding:10px;border-radius:14px}
+.qrbox img,.qrbox canvas{width:140px;height:140px;display:block}
+.foot{color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s cubic-bezier(.2,1.4,.4,1)}@keyframes pop{from{transform:scale(.96);opacity:.5}to{transform:none;opacity:1}}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>__FILTERS__</defs></svg>
+
+<div class="wrap">
+  <header class="bar"><div class="bar-in clay">
+    <a class="brand" href="#top">Актюбинский край</a>
+    <span class="prog" id="prog"></span>
+  </div></header>
+
+  <section class="hero">
+    <span class="eyebrow">Цифровая карта · 7 памятников</span>
+    <h1>Исторические памятники Актюбинского края</h1>
+    <p id="lead">Нажми на метку на карте или отсканируй QR-код на бумажной карте. У каждой метки есть фото, район, период, справка, координаты и ссылка.</p>
+  </section>
+
+  <section class="mapcard clay" aria-label="Карта Актюбинской области">
+    <svg viewBox="__VIEWBOX__" id="map" role="img" aria-label="Карта Актюбинской области с метками памятников">
+      <g>__DISTRICTS__</g>
+      <g id="pins"></g>
+    </svg>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <main id="app"></main>
+  <p class="foot">По исследовательской работе «Цифровая карта исторических памятников Актюбинского края». Координаты — Visit Aktobe. Границы — geoBoundaries.</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+const BASE="__BASE__";
+const STOPS=__DATA__;
+const ICONS=__ICONS__;
+const AKT=__AKTOBE__;
+const CATS=[["red","красный","мавзолеи и некрополи","#E9785C"],["blue","синий","мемориальные комплексы","#57B6CF"],
+            ["green","зелёный","археологические объекты","#8ED3A0"],["yellow","жёлтый","памятники и другие сооружения","#F2D46B"]];
+
+function loadV(){try{return new Set(JSON.parse(localStorage.getItem("visited")||"[]"))}catch(e){return new Set()}}
+function saveV(){try{localStorage.setItem("visited",JSON.stringify([...visited]))}catch(e){}}
+let visited=loadV();
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+const iconSvg=(s,vb="-10 -14 220 222")=>`<svg viewBox="${vb}" aria-hidden="true">${ICONS[s.icon]}</svg>`;
+const gmaps=s=>s.exact?`https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lon}`:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.search)}`;
+
+function drawPins(active){
+  const col={red:"#E9785C",blue:"#57B6CF"};
+  let g=`<g><rect x="${AKT[0]-12}" y="${AKT[1]-12}" width="24" height="24" rx="4" transform="rotate(45 ${AKT[0]} ${AKT[1]})" fill="#2F3A5C"/></g>`;
+  for(const s of STOPS){
+    const on=s.id===active, r=on?48:38;
+    g+=`<a href="#${s.id}" class="pin" aria-label="${esc(s.n+'. '+s.name)}">
+      <ellipse cx="${s.x+4}" cy="${s.y+r*.9}" rx="${r*.8}" ry="${r*.28}" fill="#2F3A5C" opacity=".22"/>
+      ${on?`<circle cx="${s.x}" cy="${s.y}" r="${r+16}" fill="#fff" opacity=".7" filter="url(#claySm)"/>`:""}
+      <circle cx="${s.x}" cy="${s.y}" r="${r}" fill="${col[s.kind]}" filter="url(#clay)" ${s.exact?"":'stroke="#fff" stroke-width="5" stroke-dasharray="10 8"'}/>
+      <text x="${s.x}" y="${s.y+(on?15:12)}" text-anchor="middle" font-family="Nunito" font-weight="900" font-size="${on?44:36}" fill="${s.kind==='blue'?'#123A47':'#fff'}">${s.n}</text></a>`;
+  }
+  $("#pins").innerHTML=g;
+}
+function legend(){
+  $("#legend").innerHTML=CATS.map(([k,c,label,hex])=>{const n=STOPS.filter(s=>s.kind===k).length;
+    return `<span class="chip ${n?'':'off'}"><i class="dot" style="background:${hex}"></i>${c} — ${label}${n?` · ${n}`:" · пока нет"}</span>`}).join("")+`<span class="chip"><i class="dot" style="background:#2F3A5C;border-radius:3px;transform:rotate(45deg) scale(.8)"></i>город Актобе</span>`;
+}
+
+function home(){
+  const next=STOPS.find(s=>!visited.has(s.id))||STOPS[0];
+  return `<section class="pop" style="display:grid;gap:18px">
+    <div class="links"><a class="btn primary" href="#${next.id}">${visited.size?"Продолжить тур":"Начать тур"} · ${next.n}</a><a class="btn" href="#qr">QR-коды</a></div>
+    <ul class="list">${STOPS.map(s=>`<li><a class="row clay" href="#${s.id}">
+      <span class="thumb">${s.photo?`<img src="${s.photo}" alt="">`:iconSvg(s)}</span>
+      <span class="t"><b>${esc(s.name)}</b><small>${esc(s.district)} · ${esc(s.period)}</small></span>
+      <span class="num ${s.kind} ${visited.has(s.id)?'seen':''}">${visited.has(s.id)?"✓":s.n}</span></a></li>`).join("")}</ul></section>`;
+}
+
+function mark(s){
+  const i=STOPS.indexOf(s),prev=STOPS[i-1],next=STOPS[i+1],seen=visited.has(s.id);
+  const cat=s.kind==="red"?"мавзолеи и некрополи":"мемориальные комплексы";
+  return `<article class="mark clay pop">
+    <div class="photo ${s.kind}">${s.photo?`<img src="${s.photo}" alt="${esc(s.name)}"><span class="cap">Фото: ${esc(s.credit)}</span>`:`${iconSvg(s)}<span class="cap">Иллюстрация</span>`}</div>
+    <div class="mark-head">
+      <span class="eyebrow">Метка ${s.n} из ${STOPS.length} · ${cat}</span>
+      <h2>${esc(s.name)}</h2>
+    </div>
+    <dl class="fields">
+      <div><dt>Район</dt><dd>${esc(s.district)}</dd></div>
+      <div><dt>Дата / период</dt><dd>${esc(s.period)}</dd></div>
+      <div class="wide"><dt>Где находится</dt><dd>${esc(s.place)}</dd></div>
+      <div class="wide"><dt>Координаты</dt><dd>${s.exact?`<span class="coord" id="cv">${s.lat}, ${s.lon}</span>`:`<span class="approx">В работе не указаны, точка на карте примерная</span>`}</dd></div>
+    </dl>
+    <div><span class="eyebrow">Краткая историческая справка</span><div class="story" style="margin-top:8px">${s.text.map(p=>`<p>${esc(p)}</p>`).join("")}</div></div>
+    <div class="links">
+      <a class="btn terra" href="${s.link}" target="_blank" rel="noopener">Подробнее · Visit Aktobe</a>
+      <a class="btn" href="${gmaps(s)}" target="_blank" rel="noopener">Открыть в Google Картах</a>
+      ${s.exact?`<button class="btn" id="copy" type="button">Скопировать координаты</button>`:""}
+    </div>
+    <div class="quiz"><span class="eyebrow">Проверь себя</span><b>${esc(s.q)}</b>
+      <button class="btn" type="button" id="reveal">Показать ответ</button><div id="ans" hidden>${esc(s.a)}</div></div>
+    <button class="btn ${seen?'primary':''}" type="button" id="visit" aria-pressed="${seen}">${seen?"✓ Изучено":"Отметить как изучено"}</button>
+    <nav class="nav">
+      ${prev?`<a class="btn" href="#${prev.id}">← ${prev.n}</a>`:`<a class="btn" href="#top">← К списку</a>`}
+      ${next?`<a class="btn primary" href="#${next.id}">Дальше · ${next.n} →</a>`:`<a class="btn primary" href="#top">Тур пройден ✓</a>`}
+    </nav>
+  </article>`;
+}
+
+function qrSheet(){
+  const cards=[{t:"Весь тур",u:BASE,s:"все 7 памятников"}].concat(STOPS.map(s=>({t:s.n+". "+s.short,u:BASE+"#"+s.id,s:s.district})));
+  return `<section class="pop" style="display:grid;gap:18px">
+    <div class="clay" style="padding:18px"><h2 style="font-size:24px">QR-коды для бумажной карты</h2>
+    <p style="margin:6px 0 0;color:var(--muted)">Сохрани картинку (правый клик или долгое нажатие) и наклей рядом с меткой того же номера.</p></div>
+    <div class="qr-grid">${cards.map(c=>`<div class="qr-card clay"><div class="qrbox" data-url="${c.u}"></div><b>${esc(c.t)}</b><small style="color:var(--muted)">${esc(c.s)}</small></div>`).join("")}</div>
+    <a class="btn" href="#top">← К карте</a></section>`;
+}
+
+function render(){
+  const id=location.hash.slice(1), s=STOPS.find(x=>x.id===id);
+  drawPins(s?s.id:null);
+  $("#app").innerHTML=s?mark(s):(id==="qr"?qrSheet():home());
+  $("#prog").textContent=`изучено ${visited.size}/${STOPS.length}`;
+  if(s){
+    $("#reveal").onclick=()=>{$("#ans").hidden=false;$("#reveal").hidden=true};
+    $("#visit").onclick=()=>{visited.has(s.id)?visited.delete(s.id):visited.add(s.id);saveV();render()};
+    const c=$("#copy"); if(c) c.onclick=()=>{const t=`${s.lat}, ${s.lon}`;
+      const sel=()=>{const v=$("#cv");const r=document.createRange();r.selectNodeContents(v);const g=getSelection();g.removeAllRanges();g.addRange(r)};
+      try{navigator.clipboard.writeText(t).then(()=>{c.textContent="Скопировано"},sel)}catch(e){sel()}};
+    window.scrollTo({top:$("#app").getBoundingClientRect().top+scrollY-96});
+  } else if(id==="qr"&&window.QRCode){
+    document.querySelectorAll(".qrbox").forEach(b=>new QRCode(b,{text:b.dataset.url,width:280,height:280,colorDark:"#2F3A5C",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M}));
+  } else window.scrollTo(0,0);
+}
+legend();
+window.addEventListener("hashchange",render);
+render();
+</script>

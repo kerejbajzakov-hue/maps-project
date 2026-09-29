@@ -1,0 +1,4 @@
+shapely
+qrcode
+reportlab
+Pillow

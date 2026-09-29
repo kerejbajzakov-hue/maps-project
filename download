@@ -1,0 +1,6 @@
+src/photos/
+__pycache__/
+*.pyc
+src/poster_clay.html
+src/poster_hi.png
+node_modules/
