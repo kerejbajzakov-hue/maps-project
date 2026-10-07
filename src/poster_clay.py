@@ -169,7 +169,7 @@ for i, c in enumerate(cards):
         A(f'<g transform="translate(20,112) scale(.8)" filter="url(#drop)">{icon(c["icon"])}</g>')
     elif c["n"]:
         import base64
-        b64 = base64.b64encode(open(f"photos/{c['id']}.jpg", "rb").read()).decode()
+        b64 = base64.b64encode(open(os.path.join(os.environ.get("PHOTO_DIR", "photos"), f"{c['id']}-1.jpg"), "rb").read()).decode()
         A(f'<clipPath id="ph{i}"><rect x="26" y="26" width="270" height="306" rx="30"/></clipPath>'
           f'<g filter="url(#drop)"><rect x="26" y="26" width="270" height="306" rx="30" fill="#fff"/></g>'
           f'<image href="data:image/jpeg;base64,{b64}" x="26" y="26" width="270" height="306" preserveAspectRatio="xMidYMid slice" clip-path="url(#ph{i})"/>'

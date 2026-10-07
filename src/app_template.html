@@ -73,6 +73,21 @@ h1,h2,h3{margin:0;text-wrap:balance;font-weight:900;letter-spacing:-.01em}
 .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .photo::after{content:"";position:absolute;inset:0;border-radius:24px;box-shadow:inset 5px 6px 14px rgba(47,58,92,.25),inset -4px -4px 12px rgba(255,255,255,.35);pointer-events:none}
 .photo .cap{position:absolute;left:12px;bottom:12px;z-index:1;font:700 12px var(--font);color:#fff;background:rgba(47,58,92,.55);padding:5px 9px;border-radius:10px;backdrop-filter:blur(4px)}
+.ph-open{all:unset;position:absolute;inset:0;cursor:zoom-in}
+.ph-open:focus-visible{outline:3px solid var(--teal-ink);outline-offset:-3px;border-radius:24px}
+.photo .count{position:absolute;right:12px;top:12px;z-index:1;font:800 12px var(--font);color:#fff;background:rgba(47,58,92,.55);padding:5px 9px;border-radius:10px}
+.photo .zoom{position:absolute;right:12px;bottom:12px;z-index:1;font:800 12px var(--font);color:#fff;background:rgba(47,58,92,.55);padding:5px 9px;border-radius:10px;pointer-events:none}
+.strip{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 8px}
+.strip button{all:unset;flex:0 0 auto;width:72px;height:54px;border-radius:14px;overflow:hidden;cursor:pointer;opacity:.6;box-shadow:4px 5px 10px var(--sh-out)}
+.strip button[aria-current="true"]{opacity:1;outline:3px solid var(--teal);outline-offset:2px}
+.strip img{width:100%;height:100%;object-fit:cover;display:block}
+.lb{position:fixed;inset:0;z-index:50;background:rgba(14,18,32,.92);display:grid;grid-template-rows:auto 1fr auto;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(14px + env(safe-area-inset-bottom,0px))}
+.lb-top,.lb-bot{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#fff;font:700 14px var(--font)}
+.lb-img{min-height:0;display:grid;place-items:center;position:relative}
+.lb-img img{max-width:100%;max-height:100%;object-fit:contain;border-radius:16px}
+.lb button,.lb a{font:800 14px var(--font);color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:14px;padding:11px 14px;cursor:pointer;text-decoration:none}
+.lb .nav-btn{position:absolute;top:50%;transform:translateY(-50%);font-size:22px;padding:12px 16px}
+.lb .prev{left:4px} .lb .next{right:4px}
 .mark-head{display:grid;gap:8px}
 .mark-head h2{font-size:clamp(22px,6vw,30px);line-height:1.12}
 .fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0}
@@ -167,11 +182,46 @@ function home(){
       <span class="num ${s.kind} ${visited.has(s.id)?'seen':''}">${visited.has(s.id)?"✓":s.n}</span></a></li>`).join("")}</ul></section>`;
 }
 
+let PH={s:null,i:0};
+function gallery(s){
+  if(!s.photos||!s.photos.length) return `<div class="photo ${s.kind}">${iconSvg(s)}<span class="cap">Иллюстрация</span></div>`;
+  const p=s.photos[0], n=s.photos.length;
+  return `<div style="display:grid;gap:10px"><div class="photo ${s.kind}">
+      <img id="phMain" src="${p.src}" alt="${esc(s.name)}">
+      <button class="ph-open" type="button" id="phOpen" aria-label="Открыть фото на весь экран"></button>
+      ${n>1?`<span class="count" id="phCount">1 / ${n}</span>`:""}
+      <span class="cap" id="phCap">Фото: ${esc(p.credit)}</span><span class="zoom">⤢ открыть</span></div>
+    ${n>1?`<div class="strip" role="list">${s.photos.map((q,i)=>`<button type="button" data-i="${i}" aria-current="${i===0}" aria-label="Фото ${i+1}"><img src="${q.src}" alt="" loading="lazy"></button>`).join("")}</div>`:""}</div>`;
+}
+function showPhoto(s,i){
+  PH={s,i}; const p=s.photos[i];
+  const m=$("#phMain"); if(m){m.src=p.src}
+  const c=$("#phCap"); if(c) c.textContent="Фото: "+p.credit;
+  const k=$("#phCount"); if(k) k.textContent=`${i+1} / ${s.photos.length}`;
+  document.querySelectorAll(".strip button").forEach(b=>b.setAttribute("aria-current",String(+b.dataset.i===i)));
+}
+function openLB(s,i){
+  closeLB(); PH={s,i};
+  const d=document.createElement("div"); d.className="lb"; d.id="lb"; d.setAttribute("role","dialog"); d.setAttribute("aria-label","Фото");
+  d.innerHTML=`<div class="lb-top"><span id="lbT"></span><button type="button" id="lbX">✕ Закрыть</button></div>
+    <div class="lb-img">${s.photos.length>1?`<button class="nav-btn prev" type="button" id="lbP" aria-label="Предыдущее">‹</button>`:""}<img id="lbI" alt="">${s.photos.length>1?`<button class="nav-btn next" type="button" id="lbN" aria-label="Следующее">›</button>`:""}</div>
+    <div class="lb-bot"><span id="lbC"></span><a id="lbO" target="_blank" rel="noopener">Открыть оригинал ↗</a></div>`;
+  document.body.appendChild(d); document.body.style.overflow="hidden";
+  const upd=()=>{const p=s.photos[PH.i];$("#lbI").src=p.src;$("#lbI").alt=s.name;$("#lbO").href=p.src;$("#lbC").textContent="Фото: "+p.credit;$("#lbT").textContent=`${s.short} · ${PH.i+1} / ${s.photos.length}`;showPhoto(s,PH.i)};
+  const go=k=>{PH.i=(PH.i+k+s.photos.length)%s.photos.length;upd()};
+  upd(); $("#lbX").onclick=closeLB; d.onclick=e=>{if(e.target===d||e.target.classList.contains("lb-img"))closeLB()};
+  if($("#lbP")){$("#lbP").onclick=()=>go(-1);$("#lbN").onclick=()=>go(1)}
+  let x0=null; d.addEventListener("touchstart",e=>{x0=e.touches[0].clientX},{passive:true});
+  d.addEventListener("touchend",e=>{if(x0===null)return;const dx=e.changedTouches[0].clientX-x0;if(Math.abs(dx)>50)go(dx<0?1:-1);x0=null});
+  d._key=e=>{if(e.key==="Escape")closeLB();if(e.key==="ArrowRight")go(1);if(e.key==="ArrowLeft")go(-1)};
+  document.addEventListener("keydown",d._key); $("#lbX").focus();
+}
+function closeLB(){const d=$("#lb");if(!d)return;document.removeEventListener("keydown",d._key);d.remove();document.body.style.overflow="";const o=$("#phOpen");if(o)o.focus()}
 function mark(s){
   const i=STOPS.indexOf(s),prev=STOPS[i-1],next=STOPS[i+1],seen=visited.has(s.id);
   const cat=s.kind==="red"?"мавзолеи и некрополи":"мемориальные комплексы";
   return `<article class="mark clay pop">
-    <div class="photo ${s.kind}">${s.photo?`<img src="${s.photo}" alt="${esc(s.name)}"><span class="cap">Фото: ${esc(s.credit)}</span>`:`${iconSvg(s)}<span class="cap">Иллюстрация</span>`}</div>
+    ${gallery(s)}
     <div class="mark-head">
       <span class="eyebrow">Метка ${s.n} из ${STOPS.length} · ${cat}</span>
       <h2>${esc(s.name)}</h2>
@@ -208,12 +258,15 @@ function qrSheet(){
 }
 
 function render(){
+  closeLB();
   const id=location.hash.slice(1), s=STOPS.find(x=>x.id===id);
   drawPins(s?s.id:null);
   $("#app").innerHTML=s?mark(s):(id==="qr"?qrSheet():home());
   $("#prog").textContent=`изучено ${visited.size}/${STOPS.length}`;
   if(s){
     $("#reveal").onclick=()=>{$("#ans").hidden=false;$("#reveal").hidden=true};
+    if(s.photos&&s.photos.length){PH={s,i:0};$("#phOpen").onclick=()=>openLB(s,PH.i);
+      document.querySelectorAll(".strip button").forEach(b=>b.onclick=()=>showPhoto(s,+b.dataset.i));}
     $("#visit").onclick=()=>{visited.has(s.id)?visited.delete(s.id):visited.add(s.id);saveV();render()};
     const c=$("#copy"); if(c) c.onclick=()=>{const t=`${s.lat}, ${s.lon}`;
       const sel=()=>{const v=$("#cv");const r=document.createRange();r.selectNodeContents(v);const g=getSelection();g.removeAllRanges();g.addRange(r)};

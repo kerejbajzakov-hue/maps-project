@@ -26,12 +26,18 @@ district_svg = "".join(f'<path d="{path(g)}" fill="{TONES[cols[n]]}" stroke="#E8
 region_shadow = f'<path d="{path(reg)}" transform="translate(10,18)" fill="#2F3A5C" opacity=".18" filter="url(#blurS)"/>'
 
 CREDIT = {"kobylandy": "Мейрамбек Амангелдіұлы / Google Maps", "eset-daribay": "Wild Ticket", "kyzyltam": "Wild Ticket"}
+CREDITS = {"kobylandy-1.jpg": "Мейрамбек Амангелдіұлы / Google Maps", "eset-daribay-1.jpg": "Wild Ticket", "kyzyltam-1.jpg": "Wild Ticket"}
 stops = []
 for d in DATA:
     x, y = P(d["lon"], d["lat"])
     dd = {k2: v for k2, v in d.items()}
     dd["x"], dd["y"] = round(x, 1), round(y, 1)
-    if USE_PHOTOS and os.path.exists(f"photos/{d['id']}.jpg"):
+    if os.environ.get("PHOTOS") == "files":
+        PD = os.environ.get("PHOTO_DIR", "photos")
+        files = sorted(f for f in os.listdir(PD) if f.startswith(d["id"] + "-") and f.endswith(".jpg")) if os.path.isdir(PD) else []
+        dd["photos"] = [{"src": "photos/" + f, "credit": CREDITS.get(f, "открытые источники")} for f in files]
+        if files: dd["photo"] = "photos/" + files[0]
+    elif USE_PHOTOS and os.path.exists(f"photos/{d['id']}.jpg"):
         dd["photo"] = "data:image/jpeg;base64," + base64.b64encode(open(f"photos/{d['id']}.jpg", "rb").read()).decode()
         dd["credit"] = CREDIT.get(d["id"], "открытые источники")
     stops.append(dd)
